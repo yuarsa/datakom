@@ -25,7 +25,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label>Witel</label>
-                        {{ Form::select('witel_id', $witel, null, ['id' => 'witel_id', 'placeholder' => '- Pilih -', 'class' => 'form-control']) }}
+                        {{ Form::select('witel_id', [], null, ['id' => 'witel_id', 'placeholder' => '- Pilih -', 'class' => 'form-control']) }}
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -95,6 +95,9 @@
     </div>
 </div>
 @endsection
+@push('js')
+<script src="{{ asset('js/app/common.min.js') }}"></script>
+@endpush
 @push('scripts')
     <script>
         $(function() {
@@ -174,6 +177,8 @@
 
                 e.preventDefault();
             });
+
+            makeSublist('regional_id', 'witel_id', '{{ url('order/get-witel') }}', true, true, '');
         });
     </script>
 @endpush

@@ -25,7 +25,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label>Witel</label>
-                        {{ Form::select('witel_id', $witel, null, ['id' => 'witel_id', 'placeholder' => '- Pilih -', 'class' => 'form-control']) }}
+                        {{ Form::select('witel_id', [], null, ['id' => 'witel_id', 'placeholder' => '- Pilih -', 'class' => 'form-control']) }}
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -91,6 +91,14 @@
                         <th>Kategori Usia Order</th>
                         <th>Status Update</th>
                         <th>Group</th>
+                        <th>Symptomp</th>
+                        <th>Klarifikasi</th>
+                        <th>Tindak Lanjut</th>
+                        <th>Rekomendasi</th>
+                        <th>Progress Akhir</th>
+                        <th>Status Akhir</th>
+                        <th>Keterangan</th>
+                        <th>Agen</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -103,6 +111,9 @@
     </form>
 </div>
 @endsection
+@push('js')
+<script src="{{ asset('js/app/common.min.js') }}"></script>
+@endpush
 @push('scripts')
 <script>
     $(function() {
@@ -185,7 +196,15 @@
                 { data: 'ownergroup_wfm', name: 'ownergroup_wfm' },
                 { data: 'kategori_usia_order', name: 'kategori_usia_order' },
                 { data: 'status_id', name: 'status_id' },
-                { data: 'group', name: 'group' }
+                { data: 'group', name: 'group' },
+                { data: 'symptomp', name: 'symptomp' },
+                { data: 'klarifikasi', name: 'klarifikasi' },
+                { data: 'tindaklanjut', name: 'tindaklanjut' },
+                { data: 'rekomendasi', name: 'rekomendasi' },
+                { data: 'progress', name: 'progress' },
+                { data: 'statusakhir', name: 'statusakhir' },
+                { data: 'keterangan', name: 'keterangan' },
+                { data: 'agen', name: 'agen' }
             ]
         });
 		
@@ -202,6 +221,8 @@
                 $('.cbPilih').prop('checked', false);
             }
         });
+
+        makeSublist('regional_id', 'witel_id', '{{ url('order/get-witel') }}', true, true, '');
     });
 </script>
 @endpush

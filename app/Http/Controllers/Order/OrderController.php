@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Agent\Agent;
 use App\Models\Agent\AgentGroup;
 use App\Models\Monitor\Monitor;
+use App\Models\Regional\Regional;
+use App\Models\Regional\Witel;
 use App\Models\Worksheet\Worksheet;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Database\QueryException;
@@ -22,24 +24,23 @@ class OrderController extends Controller
             $group = AgentGroup::get();
 
             $segment = Monitor::pluck('segmen', 'segmen')->toArray();
-            $regional = Monitor::pluck('regional', 'regional')->toArray();
-            $witel = Monitor::pluck('witel', 'witel')->toArray();
+            $regional = Regional::pluck('reg_display_name', 'reg_name')->toArray();
+            // $witel = Monitor::pluck('witel', 'witel')->toArray();
             $produk = Monitor::pluck('li_product_name', 'li_product_name')->toArray();
             $usia = Monitor::pluck('kategori_usia_order', 'kategori_usia_order')->toArray();
             $listatus = Monitor::pluck('li_status', 'li_status')->toArray();
 
             $latest_refresh = Monitor::select('last_refresh')->orderBy('last_refresh', 'DESC')->take(1)->first();
 
-            return view('orders.analis.index', compact('group', 'segment', 'regional', 'witel', 'produk', 'usia', 'listatus', 'latest_refresh'));
+            return view('orders.analis.index', compact('group', 'segment', 'regional', 'produk', 'usia', 'listatus', 'latest_refresh'));
         } else if($user->hasRole('agent')) {
             $segment = Monitor::pluck('segmen', 'segmen')->toArray();
-            $regional = Monitor::pluck('regional', 'regional')->toArray();
-            $witel = Monitor::pluck('witel', 'witel')->toArray();
+            $regional = Regional::pluck('reg_display_name', 'reg_name')->toArray();
             $produk = Monitor::pluck('li_product_name', 'li_product_name')->toArray();
             $usia = Monitor::pluck('kategori_usia_order', 'kategori_usia_order')->toArray();
             $listatus = Monitor::pluck('li_status', 'li_status')->toArray();
 
-            return view('orders.agen.index', compact('segment', 'regional', 'witel', 'produk', 'usia', 'listatus'));
+            return view('orders.agen.index', compact('segment', 'regional', 'produk', 'usia', 'listatus'));
         }
     }
 
@@ -300,13 +301,12 @@ class OrderController extends Controller
             ->where('status_id', '=', 0)->get();
 			
 		$segment = Monitor::pluck('segmen', 'segmen')->toArray();
-        $regional = Monitor::pluck('regional', 'regional')->toArray();
-        $witel = Monitor::pluck('witel', 'witel')->toArray();
+        $regional = Regional::pluck('reg_display_name', 'reg_name')->toArray();
         $produk = Monitor::pluck('li_product_name', 'li_product_name')->toArray();
         $usia = Monitor::pluck('kategori_usia_order', 'kategori_usia_order')->toArray();
         $listatus = Monitor::pluck('li_status', 'li_status')->toArray();
 
-        return view('orders.analis.list_assign', compact('agent', 'orders', 'segment', 'regional', 'witel', 'produk', 'usia', 'listatus'));
+        return view('orders.analis.list_assign', compact('agent', 'orders', 'segment', 'regional', 'produk', 'usia', 'listatus'));
     }
 
     public function listToAssignTable(Request $request)
@@ -321,7 +321,13 @@ class OrderController extends Controller
             $usia_id = $request->usia_id;
             $listatus_id = $request->listatus_id;
 
-            $select = Monitor::where('group_id', $user->group_id)->where('status_id', 0);
+            // $select = Monitor::where('group_id', $user->group_id)->where('status_id', 0);
+
+            $select = Monitor::select('monitoring.*', 'worksheets.*', 'agents.agen_name')
+            ->leftJoin('worksheets', function($j) {
+                $j->on('monitoring.order_id', '=', 'worksheets.work_order_id')
+                    ->on('monitoring.li_status', '=', 'worksheets.work_li_status');
+            })->leftJoin('agents', 'worksheets.work_agen', '=', 'agents.agen_id')->where('monitoring.group_id', \Auth::user()->group_id)->where('monitoring.status_id', 0);
 			
             if($segment_id != '') {
                 $select = $select->where('segmen', $segment_id);
@@ -350,13 +356,37 @@ class OrderController extends Controller
             $select = $select->get();
 
             $data = Datatables::of($select)
-                ->addColumn('action', function($select) {
-                    return '';
-                })
                 ->addColumn('group', function($select) {
                     return $select->group->grpagen_name;
                 })
-                ->rawColumns(['action', 'group']);
+                ->addColumn('symptomp', function($select) {
+                    return $select->status['symp_name'];
+                })
+                ->addColumn('klarifikasi', function($select) {
+                    return $select->work_klarifikasi;
+                })
+                ->addColumn('tindaklanjut', function($select) {
+                    return $select->work_tindak_lanjut;
+                })
+                ->addColumn('rekomendasi', function($select) {
+                    return $select->work_rekomendasi;
+                })
+                ->addColumn('progress', function($select) {
+                    return $select->work_progres;
+                })
+                ->addColumn('statusakhir', function($select) {
+                    return $select->work_status;
+                })
+                ->addColumn('keterangan', function($select) {
+                    return $select->work_keterangan;
+                })
+                ->addColumn('agen', function($select) {
+                    return $select->agen_name;
+                })
+                ->addColumn('action', function($select) {
+                    return '';
+                })
+                ->rawColumns(['group', 'symptomp', 'klarifikasi', 'tindaklanjut', 'rekomendasi', 'progress', 'statusakhir', 'keterangan', 'agen', 'action']);
 
             return $data->make(true);
         } else {
@@ -374,13 +404,12 @@ class OrderController extends Controller
             ->where('status_id', '=', 0)->get();
 			
 		$segment = Monitor::pluck('segmen', 'segmen')->toArray();
-        $regional = Monitor::pluck('regional', 'regional')->toArray();
-        $witel = Monitor::pluck('witel', 'witel')->toArray();
+        $regional = Regional::pluck('reg_display_name', 'reg_name')->toArray();
         $produk = Monitor::pluck('li_product_name', 'li_product_name')->toArray();
         $usia = Monitor::pluck('kategori_usia_order', 'kategori_usia_order')->toArray();
         $listatus = Monitor::pluck('li_status', 'li_status')->toArray();
 
-        return view('orders.analis.change_group', compact('group', 'orders', 'segment', 'regional', 'witel', 'produk', 'usia', 'listatus'));
+        return view('orders.analis.change_group', compact('group', 'orders', 'segment', 'regional', 'produk', 'usia', 'listatus'));
     }
 
     public function listChangeGroupTable(Request $request)
@@ -395,7 +424,13 @@ class OrderController extends Controller
             $usia_id = $request->usia_id;
             $listatus_id = $request->listatus_id;
 
-            $select = Monitor::where('group_id', $user->group_id)->where('status_id', '=', 0);
+            // $select = Monitor::where('group_id', $user->group_id)->where('status_id', '=', 0);
+
+            $select = Monitor::select('monitoring.*', 'worksheets.*', 'agents.agen_name')
+            ->leftJoin('worksheets', function($j) {
+                $j->on('monitoring.order_id', '=', 'worksheets.work_order_id')
+                    ->on('monitoring.li_status', '=', 'worksheets.work_li_status');
+            })->leftJoin('agents', 'worksheets.work_agen', '=', 'agents.agen_id')->where('monitoring.group_id', \Auth::user()->group_id)->where('monitoring.status_id', '=' , 0);
 			
             if($segment_id != '') {
                 $select = $select->where('segmen', $segment_id);
@@ -424,13 +459,34 @@ class OrderController extends Controller
             $select = $select->get();
 
             $data = Datatables::of($select)
-                ->addColumn('action', function($select) {
-                    return '';
-                })
                 ->addColumn('group', function($select) {
                     return $select->group->grpagen_name;
                 })
-                ->rawColumns(['action', 'group']);
+                ->addColumn('symptomp', function($select) {
+                    return $select->status['symp_name'];
+                })
+                ->addColumn('klarifikasi', function($select) {
+                    return $select->work_klarifikasi;
+                })
+                ->addColumn('tindaklanjut', function($select) {
+                    return $select->work_tindak_lanjut;
+                })
+                ->addColumn('rekomendasi', function($select) {
+                    return $select->work_rekomendasi;
+                })
+                ->addColumn('progress', function($select) {
+                    return $select->work_progres;
+                })
+                ->addColumn('statusakhir', function($select) {
+                    return $select->work_status;
+                })
+                ->addColumn('keterangan', function($select) {
+                    return $select->work_keterangan;
+                })
+                ->addColumn('agen', function($select) {
+                    return $select->agen_name;
+                })
+                ->rawColumns(['group', 'symptomp', 'klarifikasi', 'tindaklanjut', 'rekomendasi', 'progress', 'statusakhir', 'keterangan', 'agen']);
 
             return $data->make(true);
         } else {
@@ -524,5 +580,39 @@ class OrderController extends Controller
         flash('Berhasil merubah group')->success();
 
         return redirect('order/orders');
+    }
+
+    public function getByRegName(Request $request)
+    {
+        $reg_name = $request->data;
+
+        $selected = $request->selected;
+
+        $reg_id = Regional::where('reg_name', $reg_name)->first();
+
+        if($reg_id) {
+            $witel = Witel::where('witel_regional_id', $reg_id->reg_id)->get();
+        } else {
+            $witel = [];
+        }
+
+        $data = [];
+
+        $i = 0;
+        foreach ($witel as $row) {
+            $data[$i]['id'] = $row->witel_name;
+
+            $data[$i]['nama'] = $row->witel_display_name;
+
+            if ($row->witel_name == $selected) {
+                $data[$i]['selected'] = 'selected';
+            } else {
+                $data[$i]['selected'] = '';
+            }
+
+            $i++;
+        }
+
+        return response()->json($data);
     }
 }

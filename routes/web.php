@@ -34,6 +34,14 @@ Route::group(['middleware' => 'auth'], function () {
             Route::get('agent_data', 'AgentController@datatables');
         });
 
+        Route::group(['prefix' => 'regional', 'namespace' => 'Regional'], function () {
+            Route::resource('regionals', 'RegionalController');
+            Route::get('regional_data', 'RegionalController@datatables');
+
+            Route::resource('witels', 'WitelController');
+            Route::get('witel_data', 'WitelController@datatables');
+        });
+
         Route::group(['prefix' => 'worksheet', 'namespace' => 'Worksheets'], function () {
             // Route::resource('worksheets', 'WorksheetController');
             Route::get('worksheet_data', 'WorksheetController@datatables');
@@ -52,6 +60,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::get('change-group', 'OrderController@listChangeGroup');
             Route::get('change_group', 'OrderController@listChangeGroupTable');
             Route::put('change-group', 'OrderController@updateChangeGroup');
+            Route::post('get-witel', 'OrderController@getByRegName');
         });
 		
 		Route::group(['prefix' => 'status', 'namespace' => 'Status'], function () {

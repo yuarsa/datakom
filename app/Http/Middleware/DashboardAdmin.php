@@ -49,12 +49,26 @@ class DashboardAdmin
                 ]);
             }
 
+            if ($admin->can(['read-regionals', 'read-witels'])) {
+                $menu->dropdown('Regional', function ($sub) use($admin, $attr) {
+                    if ($admin->can('read-regionals')) {
+                        $sub->url('regional/regionals', 'Regional', 1, $attr);
+                    }
+                    if ($admin->can('read-witels')) {
+                        $sub->url('regional/witels', 'Witel', 2, $attr);
+                    }
+                }, 3, [
+                    'title' => 'Regional',
+                    'icon' => 'fa fa-list',
+                ]);
+            }
+
             if ($admin->can(['read-worksheets'])) {
                 $menu->dropdown('Worksheet', function ($sub) use($admin, $attr) {
                     if ($admin->can('read-worksheets')) {
                         $sub->url('worksheet/worksheets', 'Worksheet', 1, $attr);
                     }
-                }, 3, [
+                }, 4, [
                     'title' => 'Worksheet',
                     'icon' => 'fa fa-file-excel-o',
                 ]);
@@ -65,7 +79,7 @@ class DashboardAdmin
                     if ($admin->can('read-orders')) {
                         $sub->url('order/orders', 'Order', 1, $attr);
                     }
-                }, 4, [
+                }, 5, [
                     'title' => 'Order',
                     'icon' => 'fa fa-list',
                 ]);
@@ -76,7 +90,7 @@ class DashboardAdmin
                     if ($admin->can('read-monitorings')) {
                         $sub->url('monitor/monitors', 'Monitors', 1, $attr);
                     }
-                }, 5, [
+                }, 6, [
                     'title' => 'Monitoring',
                     'icon' => 'fa fa-desktop',
                 ]);
@@ -87,7 +101,7 @@ class DashboardAdmin
                     if ($admin->can('read-worksheet-status')) {
                         $sub->url('status/worksheets', 'Worksheet Status', 1, $attr);
                     }
-                }, 6, [
+                }, 7, [
                     'title' => 'Monitoring',
                     'icon' => 'fa fa-wrench',
                 ]);
@@ -104,7 +118,7 @@ class DashboardAdmin
                     if ($admin->can('read-auth-users')) {
                         $sub->url('auth/users', 'Pengguna', 3, $attr);
                     }
-                }, 7, [
+                }, 8, [
                     'title' => 'Pengguna',
                     'icon' => 'fa fa-user',
                 ]);
